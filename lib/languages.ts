@@ -431,6 +431,18 @@ const definitions: Record<LanguageKey, LanguageDefinition> = {
         monacoDisassembly: null,
         digitSeparator: '_',
     },
+    guppy: {
+        name: 'Guppy',
+        monaco: 'python',
+        extensions: ['.gpy', '.py'],
+        alias: [],
+        logoUrl: 'guppy.png',
+        logoUrlDark: null,
+        formatter: null,
+        previewFilter: null,
+        monacoDisassembly: null,
+        digitSeparator: '_',
+    },
     haskell: {
         name: 'Haskell',
         monaco: 'haskell',
@@ -922,10 +934,14 @@ const definitions: Record<LanguageKey, LanguageDefinition> = {
 export const languages = Object.fromEntries(
     Object.entries(definitions).map(([key, lang]) => {
         let example: string;
+        const examplePath = path.join('examples', key, 'default' + lang.extensions[0]);
         try {
-            example = fs.readFileSync(path.join('examples', key, 'default' + lang.extensions[0]), 'utf8');
+            example = fs.readFileSync(examplePath, 'utf-8');
         } catch (error) {
-            example = 'Oops, something went wrong and we could not get the default code for this language.';
+            example =
+                'aaoeuOops, something went wrong and we could not get the default code for this language.\n' +
+                'Tried to read from: ' +
+                examplePath;
         }
 
         const def: Language = {

@@ -57,6 +57,7 @@ export type LanguageKey =
     | 'gimple'
     | 'glsl'
     | 'go'
+    | 'guppy'
     | 'haskell'
     | 'hlsl'
     | 'hook'

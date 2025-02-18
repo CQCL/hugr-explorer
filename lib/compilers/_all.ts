@@ -84,6 +84,7 @@ export {GLSLCompiler} from './glsl.js';
 export {GM2Compiler} from './gm2.js';
 export {GnuCobolCompiler} from './gnucobol.js';
 export {GolangCompiler} from './golang.js';
+export {GuppyCompiler} from './guppy.js';
 export {HLSLCompiler} from './hlsl.js';
 export {HaskellCompiler} from './haskell.js';
 export {HookCompiler} from './hook.js';

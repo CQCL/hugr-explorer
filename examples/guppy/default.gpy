@@ -1,0 +1,7 @@
+from guppylang import guppy
+
+@guppy
+def main():
+    q = qubit()
+    h(q)
+    measure(q)
