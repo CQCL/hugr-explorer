@@ -43,8 +43,8 @@ export class GuppyCompiler extends BaseCompiler {
         this.compiler.demangler = '';
         this.demanglerClass = null;
         this.disasmScriptPath =
-            this.compilerProps<string>('disasmScript') ||
-            resolvePathFromAppRoot('etc', 'scripts', 'disasms', 'dis_all.py');
+            this.compilerProps<string>('disasmGuppyScript') ||
+            resolvePathFromAppRoot('etc', 'scripts', 'disasms', 'dis_guppy.py');
     }
 
     override async processAsm(result) {
@@ -76,32 +76,22 @@ export class GuppyCompiler extends BaseCompiler {
         return {asm: bytecodeResult};
     }
 
-    override optionsForFilter(filters: ParseFiltersAndOutputOptions, outputFilename: string) {
-        return ['-I', this.disasmScriptPath, '--outputfile', outputFilename, '--inputfile'];
+    override optionsForFilter(filters: ParseFiltersAndOutputOptions, outputFilename: string, userOptions?: string[]) {
+        // The compiler exe should point to `uv`, so here we set the internal guppy version.
+        return [
+            'run',
+            '--with',
+            'guppylang==' + this.compiler.semver,
+            'python',
+            '-I',
+            this.disasmScriptPath,
+            '--outputfile',
+            outputFilename,
+            '--inputfile',
+        ];
     }
 
     override getArgumentParserClass() {
         return BaseParser;
-    }
-
-    override orderArguments(
-        options: string[],
-        inputFilename: string,
-        libIncludes: string[],
-        libOptions: string[],
-        libPaths: string[],
-        libLinks: string[],
-        userOptions: string[],
-        staticLibLinks: string[],
-    ) {
-        return options.concat(
-            [this.filename(inputFilename)],
-            libIncludes,
-            libOptions,
-            libPaths,
-            libLinks,
-            userOptions,
-            staticLibLinks,
-        );
     }
 }

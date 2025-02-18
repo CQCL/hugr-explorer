@@ -1,7 +1,10 @@
 from guppylang import guppy
 
 @guppy
-def main():
-    q = qubit()
-    h(q)
-    measure(q)
+def factorial(x: int) -> int:
+    """Classical factorial function in Guppy."""
+    acc = 1
+    while x > 0:
+        acc *= x
+        x -= 1
+    return acc
