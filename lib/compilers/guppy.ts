@@ -22,73 +22,23 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-import type {AsmResultSource, ParsedAsmResultLine} from '../../types/asmresult/asmresult.interfaces.js';
-import type {PreliminaryCompilerInfo} from '../../types/compiler.interfaces.js';
 import type {ParseFiltersAndOutputOptions} from '../../types/features/filters.interfaces.js';
 import {BaseCompiler} from '../base-compiler.js';
-import {CompilationEnvironment} from '../compilation-env.js';
-import {resolvePathFromAppRoot} from '../utils.js';
 
 import {BaseParser} from './argument-parsers.js';
 
 export class GuppyCompiler extends BaseCompiler {
-    private readonly disasmScriptPath: string;
-
     static get key() {
         return 'guppy';
     }
 
-    constructor(compilerInfo: PreliminaryCompilerInfo, env: CompilationEnvironment) {
-        super(compilerInfo, env);
-        this.compiler.demangler = '';
-        this.demanglerClass = null;
-        this.disasmScriptPath =
-            this.compilerProps<string>('disasmGuppyScript') ||
-            resolvePathFromAppRoot('etc', 'scripts', 'disasms', 'dis_guppy.py');
-    }
-
-    override async processAsm(result) {
-        const lineRe = /^\s{0,4}(\d+)(.*)/;
-
-        const bytecodeLines = result.asm.split('\n');
-
-        const bytecodeResult: ParsedAsmResultLine[] = [];
-        let lastLineNo: number | null = null;
-        let sourceLoc: AsmResultSource | null = null;
-
-        for (const line of bytecodeLines) {
-            const match = line.match(lineRe);
-
-            if (match) {
-                const lineno = Number.parseInt(match[1]);
-                sourceLoc = {line: lineno, file: null};
-                lastLineNo = lineno;
-            } else if (line) {
-                sourceLoc = {line: lastLineNo, file: null};
-            } else {
-                sourceLoc = {line: null, file: null};
-                lastLineNo = null;
-            }
-
-            bytecodeResult.push({text: line, source: sourceLoc});
-        }
-
-        return {asm: bytecodeResult};
-    }
-
     override optionsForFilter(filters: ParseFiltersAndOutputOptions, outputFilename: string, userOptions?: string[]) {
-        // The compiler exe should point to `uv`, so here we set the internal guppy version.
-        return [
-            'run',
-            '--with',
-            'guppylang==' + this.compiler.semver,
-            'python',
-            '-I',
-            this.disasmScriptPath,
-            '--outputfile',
-            outputFilename,
-            '--inputfile',
-        ];
+        // The compiler exe should point to [`guppyc`](https://github.com/CQCL/guppyc).
+        return ['--guppy-version', this.compiler.semver, '--llvm', outputFilename];
+    }
+
+    override isCfgCompiler() {
+        return true;
     }
 
     override getArgumentParserClass() {

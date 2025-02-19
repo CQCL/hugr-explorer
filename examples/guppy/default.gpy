@@ -1,7 +1,7 @@
 from guppylang import guppy
 
 @guppy
-def factorial(x: int) -> int:
+def main(x: int) -> int:
     """Classical factorial function in Guppy."""
     acc = 1
     while x > 0:
