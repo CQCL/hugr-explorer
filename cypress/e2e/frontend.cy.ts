@@ -11,6 +11,7 @@ const PANE_DATA_MAP = {
     device: {name: 'Device', selector: 'view-device'},
     mir: {name: 'MIR', selector: 'view-rustmir'},
     hir: {name: 'HIR', selector: 'view-rusthir'},
+    hugr: {name: 'HUGR', selector: 'view-hugr'},
     macro: {name: 'Macro', selector: 'view-rustmacroexp'},
     core: {name: 'Core', selector: 'view-haskellCore'},
     stg: {name: 'STG', selector: 'view-haskellStg'},

@@ -1565,6 +1565,10 @@ export class BaseCompiler {
         return utils.changeExtension(inputFilename, '.hir');
     }
 
+    getHugrOutputFilename(inputFilename: string) {
+        return utils.changeExtension(inputFilename, '.hugr');
+    }
+
     getRustMirOutputFilename(outputFilename: string) {
         return utils.changeExtension(outputFilename, '.mir');
     }
@@ -1618,6 +1622,27 @@ export class BaseCompiler {
     async generateRustHir(inputFilename: string, options: string[]): Promise<ResultLine[]> {
         const hirPath = this.getRustHirOutputFilename(inputFilename);
         return this.generateRustUnprettyOutput(inputFilename, options, 'hir-tree', hirPath, 'HIR');
+    }
+
+    // Return the HUGR representation of the program
+    async generateHugr(inputFilename: string, options: string[]): Promise<ResultLine[]> {
+        const execOptions = this.getDefaultExecOptions();
+        const outputFilename = this.getHugrOutputFilename(inputFilename);
+
+        const newOptions = [...options];
+        newOptions.push('--sexpr', outputFilename);
+
+        const output = await this.runCompiler(this.compiler.exe, newOptions, inputFilename, execOptions);
+        if (output.code !== 0) {
+            return [{text: 'Failed to run compiler to get HUGR output'}];
+        }
+        if (await utils.fileExists(outputFilename)) {
+            const content = await fs.readFile(outputFilename, 'utf8');
+            return content.split('\n').map(line => ({
+                text: line,
+            }));
+        }
+        return [{text: 'Internal error; unable to open output path'}];
     }
 
     async processRustMirOutput(outputFilename: string, output: CompilationResult): Promise<ResultLine[]> {
@@ -2364,6 +2389,7 @@ export class BaseCompiler {
         const makeHaskellStg = backendOptions.produceHaskellStg && this.compiler.supportsHaskellStgView;
         const makeHaskellCmm = backendOptions.produceHaskellCmm && this.compiler.supportsHaskellCmmView;
         const makeGccDump = backendOptions.produceGccDump?.opened && this.compiler.supportsGccDump;
+        const makeHugr = backendOptions.produceHugr && this.compiler.supportsHugrView;
 
         const [
             asmResult,
@@ -2374,6 +2400,7 @@ export class BaseCompiler {
             optPipelineResult,
             rustHirResult,
             rustMacroExpResult,
+            hugrResult,
             toolsResult,
         ] = await Promise.all([
             this.runCompiler(this.compiler.exe, options, inputFilenameSafe, execOptions, filters),
@@ -2394,6 +2421,7 @@ export class BaseCompiler {
                 : undefined,
             makeRustHir ? this.generateRustHir(inputFilename, options) : undefined,
             makeRustMacroExp ? this.generateRustMacroExpansion(inputFilename, options) : undefined,
+            makeHugr ? this.generateHugr(inputFilename, options) : undefined,
             Promise.all(
                 this.runToolsOfType(
                     tools,
@@ -2472,6 +2500,7 @@ export class BaseCompiler {
         asmResult.rustMirOutput = rustMirResult;
         asmResult.rustMacroExpOutput = rustMacroExpResult;
         asmResult.rustHirOutput = rustHirResult;
+        asmResult.hugrOutput = hugrResult;
 
         asmResult.haskellCoreOutput = haskellCoreResult;
         asmResult.haskellStgOutput = haskellStgResult;
@@ -3281,6 +3310,10 @@ export class BaseCompiler {
             ['amd64', 'arm32', 'aarch64', 'llvm'].includes(this.compiler.instructionSet ?? '') ||
             /^([\w-]*-)?g((\+\+)|(cc)|(dc))/.test(this.compiler.version) !== null
         );
+    }
+
+    isMermaidCompiler() {
+        return false;
     }
 
     async processGccDumpOutput(

@@ -1,4 +1,4 @@
-// Copyright (c) 2019, Sebastian Rath
+// Copyright (c) 2021, Compiler Explorer Authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -22,29 +22,6 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-import _ from 'underscore';
-import {PreliminaryCompilerInfo} from '../../types/compiler.interfaces.js';
-import type {ParseFiltersAndOutputOptions} from '../../types/features/filters.interfaces.js';
-import {BaseCompiler} from '../base-compiler.js';
-import {CompilationEnvironment} from '../compilation-env.js';
-
-export class GuppyCompiler extends BaseCompiler {
-    static get key() {
-        return 'guppy';
-    }
-
-    constructor(info: PreliminaryCompilerInfo, env: CompilationEnvironment) {
-        super(info, env);
-        this.compiler.supportsIntel = false;
-        this.compiler.supportsHugrView = true;
-    }
-
-    override optionsForFilter(filters: ParseFiltersAndOutputOptions, outputFilename: string, userOptions?: string[]) {
-        // The compiler exe should point to [`guppyc`](https://github.com/CQCL/guppyc).
-        return ['--guppy-version', this.compiler.semver, '--llvm', outputFilename];
-    }
-
-    override isCfgCompiler() {
-        return true;
-    }
+export interface HugrState {
+    hugrOutput: any;
 }

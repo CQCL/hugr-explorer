@@ -115,6 +115,7 @@ export type CompilationRequestOptions = {
         produceHaskellCore?: boolean;
         produceHaskellStg?: boolean;
         produceHaskellCmm?: boolean;
+        produceHugr?: boolean;
         cmakeArgs?: string;
         customOutputFilename?: string;
         overrides?: ConfiguredOverrides;
@@ -211,6 +212,8 @@ export type CompilationResult = {
     haskellCoreOutput?: ResultLine[];
     haskellStgOutput?: ResultLine[];
     haskellCmmOutput?: ResultLine[];
+
+    hugrOutput?: ResultLine[];
 
     forceBinaryView?: boolean;
 

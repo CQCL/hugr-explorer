@@ -37,6 +37,7 @@ export enum DiffType {
     RustMirOutput = 10,
     RustMacroExpOutput = 11,
     RustHirOutput = 12,
+    HugrOutput = 13,
 }
 
 export type DiffState = {

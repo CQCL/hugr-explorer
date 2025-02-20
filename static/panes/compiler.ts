@@ -234,6 +234,7 @@ export class Compiler extends MonacoPane<monaco.editor.IStandaloneCodeEditor, Co
     private statusLabel: JQuery<HTMLElement>;
     private statusIcon: JQuery<HTMLElement>;
     private rustHirButton: JQuery<HTMLButtonElement>;
+    private hugrButton: JQuery<HTMLButtonElement>;
     private libsWidget: LibsWidget | null;
     private isLabelCtxKey: monaco.editor.IContextKey<boolean>;
     private revealJumpStackHasElementsCtxKey: monaco.editor.IContextKey<boolean>;
@@ -262,6 +263,7 @@ export class Compiler extends MonacoPane<monaco.editor.IStandaloneCodeEditor, Co
     private rustMirViewOpen: boolean;
     private rustMacroExpViewOpen: boolean;
     private rustHirViewOpen: boolean;
+    private hugrViewOpen: boolean;
     private haskellCoreViewOpen: boolean;
     private haskellStgViewOpen: boolean;
     private haskellCmmViewOpen: boolean;
@@ -648,6 +650,17 @@ export class Compiler extends MonacoPane<monaco.editor.IStandaloneCodeEditor, Co
             );
         };
 
+        const createHugrView = () => {
+            return Components.getHugrViewWith(
+                this.id,
+                this.source,
+                this.lastResult?.hugrOutput,
+                this.getCompilerName(),
+                this.sourceEditorId ?? 0,
+                this.sourceTreeId ?? 0,
+            );
+        };
+
         const createCfgView = () => {
             return Components.getCfgViewWith(this.id, this.sourceEditorId ?? 0, this.sourceTreeId ?? 0);
         };
@@ -934,6 +947,19 @@ export class Compiler extends MonacoPane<monaco.editor.IStandaloneCodeEditor, Co
                 this.hub.findParentRowOrColumn(this.container.parent) ||
                 this.container.layoutManager.root.contentItems[0];
             insertPoint.addChild(createGnatDebugView());
+        });
+
+        this.container.layoutManager
+            .createDragSource(this.hugrButton, createHugrView as any)
+
+            // @ts-ignore
+            ._dragListener.on('dragStart', hidePaneAdder);
+
+        this.hugrButton.on('click', () => {
+            const insertPoint =
+                this.hub.findParentRowOrColumn(this.container.parent) ||
+                this.container.layoutManager.root.contentItems[0];
+            insertPoint.addChild(createHugrView());
         });
 
         this.container.layoutManager
@@ -1278,6 +1304,7 @@ export class Compiler extends MonacoPane<monaco.editor.IStandaloneCodeEditor, Co
                 produceHaskellCore: this.haskellCoreViewOpen,
                 produceHaskellStg: this.haskellStgViewOpen,
                 produceHaskellCmm: this.haskellCmmViewOpen,
+                produceHugr: this.hugrViewOpen,
                 overrides: this.getCurrentState().overrides,
             },
             filters: this.getEffectiveFilters(),
@@ -2363,6 +2390,21 @@ export class Compiler extends MonacoPane<monaco.editor.IStandaloneCodeEditor, Co
         }
     }
 
+    onHugrViewOpened(id: number): void {
+        if (this.id === id) {
+            this.hugrButton.prop('disabled', true);
+            this.hugrViewOpen = true;
+            this.compile();
+        }
+    }
+
+    onHugrViewClosed(id: number): void {
+        if (this.id === id) {
+            this.hugrButton.prop('disabled', false);
+            this.hugrViewOpen = false;
+        }
+    }
+
     onGccDumpUIInit(id: number): void {
         if (this.id === id) {
             this.compile();
@@ -2537,6 +2579,7 @@ export class Compiler extends MonacoPane<monaco.editor.IStandaloneCodeEditor, Co
         this.haskellCoreButton = this.domRoot.find('.btn.view-haskellCore');
         this.haskellStgButton = this.domRoot.find('.btn.view-haskellStg');
         this.haskellCmmButton = this.domRoot.find('.btn.view-haskellCmm');
+        this.hugrButton = this.domRoot.find('.btn.view-hugr');
         this.gccDumpButton = this.domRoot.find('.btn.view-gccdump');
         this.cfgButton = this.domRoot.find('.btn.view-cfg');
         this.executorButton = this.domRoot.find('.create-executor');
@@ -2823,6 +2866,7 @@ export class Compiler extends MonacoPane<monaco.editor.IStandaloneCodeEditor, Co
         this.gccDumpButton.prop('disabled', this.gccDumpViewOpen);
         this.gnatDebugTreeButton.prop('disabled', this.gnatDebugTreeViewOpen);
         this.gnatDebugButton.prop('disabled', this.gnatDebugViewOpen);
+        this.hugrButton.prop('disabled', this.hugrViewOpen);
         // The executorButton does not need to be changed here, because you can create however
         // many executors as you want.
 
@@ -2840,6 +2884,7 @@ export class Compiler extends MonacoPane<monaco.editor.IStandaloneCodeEditor, Co
         this.haskellCoreButton.toggle(!!this.compiler.supportsHaskellCoreView);
         this.haskellStgButton.toggle(!!this.compiler.supportsHaskellStgView);
         this.haskellCmmButton.toggle(!!this.compiler.supportsHaskellCmmView);
+        this.hugrButton.toggle(!!this.compiler.supportsHugrView);
         // TODO(jeremy-rifkin): Disable cfg button when binary mode is set?
         this.cfgButton.toggle(!!this.compiler.supportsCfg);
         this.gccDumpButton.toggle(!!this.compiler.supportsGccDump);
@@ -3016,6 +3061,8 @@ export class Compiler extends MonacoPane<monaco.editor.IStandaloneCodeEditor, Co
         this.eventHub.on('haskellStgViewClosed', this.onHaskellStgViewClosed, this);
         this.eventHub.on('haskellCmmViewOpened', this.onHaskellCmmViewOpened, this);
         this.eventHub.on('haskellCmmViewClosed', this.onHaskellCmmViewClosed, this);
+        this.eventHub.on('hugrViewOpened', this.onHugrViewOpened, this);
+        this.eventHub.on('hugrViewClosed', this.onHugrViewClosed, this);
         this.eventHub.on('outputOpened', this.onOutputOpened, this);
         this.eventHub.on('outputClosed', this.onOutputClosed, this);
 

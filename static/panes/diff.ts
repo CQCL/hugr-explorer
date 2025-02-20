@@ -159,6 +159,11 @@ class DiffStateObject {
                         {text: "<select 'Add new...' → 'Rust HIR' in this compiler's pane>"},
                     ];
                     break;
+                case DiffType.HugrOutput:
+                    output = this.result.hugrOutput || [
+                        {text: "<select 'Add new...' → 'HUGR' in this compiler's pane>"},
+                    ];
+                    break;
             }
         }
         this.model.setValue(output.map(x => x.text).join('\n'));
@@ -461,6 +466,9 @@ export class Diff extends MonacoPane<monaco.editor.IStandaloneDiffEditor, DiffSt
             }
             if (compiler.supportsRustHirView) {
                 options.push({id: DiffType.RustHirOutput.toString(), name: 'Rust HIR'});
+            }
+            if (compiler.supportsHugrView) {
+                options.push({id: DiffType.HugrOutput.toString(), name: 'HUGR'});
             }
         }
 

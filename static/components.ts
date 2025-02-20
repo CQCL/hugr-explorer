@@ -53,6 +53,7 @@ import {
     EmptyHaskellCmmViewState,
     EmptyHaskellCoreViewState,
     EmptyHaskellStgViewState,
+    EmptyHugrViewState,
     EmptyIrViewState,
     EmptyOptPipelineViewState,
     EmptyOptViewState,
@@ -71,6 +72,7 @@ import {
     HASKELL_CMM_VIEW_COMPONENT_NAME,
     HASKELL_CORE_VIEW_COMPONENT_NAME,
     HASKELL_STG_VIEW_COMPONENT_NAME,
+    HUGR_VIEW_COMPONENT_NAME,
     IR_VIEW_COMPONENT_NAME,
     OPT_PIPELINE_VIEW_COMPONENT_NAME,
     OPT_VIEW_COMPONENT_NAME,
@@ -93,6 +95,7 @@ import {
     PopulatedHaskellCmmViewState,
     PopulatedHaskellCoreViewState,
     PopulatedHaskellStgViewState,
+    PopulatedHugrViewState,
     PopulatedIrViewState,
     PopulatedOptPipelineViewState,
     PopulatedOptViewState,
@@ -977,6 +980,38 @@ export function getDeviceViewWith(
             compilerName: compilerName,
             editorid: editorid,
             treeid: treeid,
+        },
+    };
+}
+
+/** Get an empty rust hir view component. */
+export function getHugrView(): ComponentConfig<EmptyHugrViewState> {
+    return {
+        type: 'component',
+        componentName: HUGR_VIEW_COMPONENT_NAME,
+        componentState: {},
+    };
+}
+
+/** Get a rust hir view with the given configuration. */
+export function getHugrViewWith(
+    id: number,
+    source: string,
+    hugrOutput: unknown,
+    compilerName: string,
+    editorid: number,
+    treeid: number,
+): ComponentConfig<PopulatedHugrViewState> {
+    return {
+        type: 'component',
+        componentName: HUGR_VIEW_COMPONENT_NAME,
+        componentState: {
+            id,
+            source,
+            hugrOutput,
+            compilerName,
+            editorid,
+            treeid,
         },
     };
 }
