@@ -1,10 +1,34 @@
-from guppylang import guppy
+from guppylang.decorator import guppy
+from guppylang.std.quantum import qubit, measure, h, cx, z, x, tdg, t, discard
 
 @guppy
-def main(x: int) -> int:
-    """Classical factorial function in Guppy."""
-    acc = 1
-    while x > 0:
-        acc *= x
-        x -= 1
-    return acc
+def rus(q: qubit, tries: int) -> None:
+    """A repeat until success experiment implementing the
+    𝑉3 gate using the repeat-until-success
+    algorithm by Paetznick and Svore.
+
+    <https://arxiv.org/abs/1311.1074>
+    """
+    for _ in range(tries):
+        # Prepare ancillary qubits
+        a, b = qubit(), qubit()
+        h(a)
+        h(b)
+
+        tdg(a)
+        cx(b, a)
+        t(a)
+        if not measure(a):
+            # First part failed; try again
+            discard(b)
+            continue
+        t(q)
+        z(q)
+        cx(q, b)
+        t(b)
+        if measure(b):
+            # Success, we are done
+            break
+
+        # Otherwise, apply correction
+        x(q)

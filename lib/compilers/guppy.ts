@@ -22,14 +22,20 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+import _ from 'underscore';
+import {PreliminaryCompilerInfo} from '../../types/compiler.interfaces.js';
 import type {ParseFiltersAndOutputOptions} from '../../types/features/filters.interfaces.js';
 import {BaseCompiler} from '../base-compiler.js';
-
-import {BaseParser} from './argument-parsers.js';
+import {CompilationEnvironment} from '../compilation-env.js';
 
 export class GuppyCompiler extends BaseCompiler {
     static get key() {
         return 'guppy';
+    }
+
+    constructor(info: PreliminaryCompilerInfo, env: CompilationEnvironment) {
+        super(info, env);
+        this.compiler.supportsIntel = false;
     }
 
     override optionsForFilter(filters: ParseFiltersAndOutputOptions, outputFilename: string, userOptions?: string[]) {
@@ -39,9 +45,5 @@ export class GuppyCompiler extends BaseCompiler {
 
     override isCfgCompiler() {
         return true;
-    }
-
-    override getArgumentParserClass() {
-        return BaseParser;
     }
 }
