@@ -587,7 +587,9 @@ export class BaseCompiler {
             execOptions.customCwd = path.dirname(inputFilename);
         }
 
-        const result = await this.exec(compiler, options, execOptions);
+        // `exec` seems to be modifying the options array, so we need to copy it here.
+        const optionsCopy = [...options];
+        const result = await this.exec(compiler, optionsCopy, execOptions);
         return {
             ...this.transformToCompilationResult(result, inputFilename),
             languageId: this.getCompilerResultLanguageId(filters),

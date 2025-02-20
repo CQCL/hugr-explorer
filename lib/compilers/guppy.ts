@@ -23,10 +23,14 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 import _ from 'underscore';
+import {ParsedAsmResultLine} from '../../types/asmresult/asmresult.interfaces.js';
+import {LLVMIrBackendOptions} from '../../types/compilation/ir.interfaces.js';
 import {PreliminaryCompilerInfo} from '../../types/compiler.interfaces.js';
 import type {ParseFiltersAndOutputOptions} from '../../types/features/filters.interfaces.js';
 import {BaseCompiler} from '../base-compiler.js';
+import * as cfg from '../cfg/cfg.js';
 import {CompilationEnvironment} from '../compilation-env.js';
+import {logger} from '../logger.js';
 
 export class GuppyCompiler extends BaseCompiler {
     static get key() {
@@ -36,6 +40,7 @@ export class GuppyCompiler extends BaseCompiler {
     constructor(info: PreliminaryCompilerInfo, env: CompilationEnvironment) {
         super(info, env);
         this.compiler.supportsIntel = false;
+        this.compiler.supportsIrView = true;
     }
 
     override optionsForFilter(filters: ParseFiltersAndOutputOptions, outputFilename: string, userOptions?: string[]) {
@@ -45,5 +50,42 @@ export class GuppyCompiler extends BaseCompiler {
 
     override isCfgCompiler() {
         return true;
+    }
+
+    // This function is normally used to generate LLVM IR views.
+    //
+    // We reuse it to generate HUGR S-Expressions instead.
+    override async generateIR(
+        inputFilename: string,
+        options: string[],
+        irOptions: LLVMIrBackendOptions,
+        produceCfg: boolean,
+        filters: ParseFiltersAndOutputOptions,
+    ) {
+        const newOptions = options.concat(['--sexpr', this.getIrOutputFilename(inputFilename, filters)]);
+
+        logger.warn('Generating HUGR S-Expressions using options:', newOptions);
+
+        const execOptions = this.getDefaultExecOptions();
+
+        const output = await this.runCompiler(this.compiler.exe, newOptions, this.filename(inputFilename), execOptions);
+        if (output.code !== 0) {
+            return {
+                asm: [
+                    {
+                        text: 'Failed to run compiler to get IR code\n\n' + _.pluck(output.stderr, 'text').join('\n'),
+                    },
+                ],
+            };
+        }
+        const ir = await this.processIrOutput(output, irOptions, filters);
+
+        const result: {
+            asm: ParsedAsmResultLine[];
+            cfg?: Record<string, cfg.CFG>;
+        } = {
+            asm: ir.asm,
+        };
+        return result;
     }
 }
